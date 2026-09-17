@@ -1,4 +1,4 @@
-name: Frontend CI
+name: Frontend Continuous Integration
 
 on:
   pull_request:
@@ -60,10 +60,27 @@ jobs:
     needs:
       - lint
       - test
+    defaults:
+      run:
+        working-directory: starter/frontend
 
     steps:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18.14"
+          cache: npm
+          cache-dependency-path: starter/frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: CI=true npm test -- --watchAll=false
+
       - name: Build frontend Docker image
+        working-directory: .
         run: docker build -t mp-frontend:${{ github.sha }} starter/frontend
